@@ -1,3 +1,6 @@
 1) Create three files client, backend, and blockchain
 2) Move to the blockchain directory and install truffle "npm install -g truffle"
    Truffle is a development environment for Ethereum smart contracts
+3) Compile the contract using truffle compile command "truffle compile"
+4) After compilation add deployment script in migration folder
+5) Run migrate command "truffle migrate" (Make sure the Ganache is open and running)

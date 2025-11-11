@@ -1,4 +1,4 @@
-pragma solidity ^0.8.17;
+pragma solidity 0.8.20;
 
 /**
  * @title AccessControl
@@ -74,7 +74,8 @@ contract AccessControl {
         patients[msg.sender] = Patient({
             owner: msg.sender,
             name: _name,
-            isRegistered: true
+            isRegistered: true,
+            recordHashes: new string[](0)
         });
         emit PatientRegistered(msg.sender, _name);
     }
