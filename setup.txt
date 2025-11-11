@@ -7,3 +7,9 @@
 6) Now initialize your backend "npm init -y"
 7) Install required packages "npm install express mongoose dotenv cors"
 8) Install nodemon "npm install nodemon --save-dev"
+9) Update the scripts in the package.json
+   "scripts": {
+     "start": "node server.js",
+     "dev": "nodemon server.js"
+   },
+10) Install MongoDB "npm install mongodb"
