@@ -4,3 +4,6 @@
 3) Compile the contract using truffle compile command "truffle compile"
 4) After compilation add deployment script in migration folder
 5) Run migrate command "truffle migrate" (Make sure the Ganache is open and running)
+6) Now initialize your backend "npm init -y"
+7) Install required packages "npm install express mongoose dotenv cors"
+8) Install nodemon "npm install nodemon --save-dev"
