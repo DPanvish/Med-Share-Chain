@@ -2,8 +2,12 @@ import express from 'express';
 import mongoose from "mongoose";
 import cors from 'cors';
 import dotenv from 'dotenv';
+import connectDB from './lib/db.js';
 
 dotenv.config();
+
+// --- Connect to MongoDB ---
+await connectDB();
 
 // --- App Configuration ---
 const app = express();
