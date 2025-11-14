@@ -17,3 +17,4 @@
 11) Install web3 for interacting with the Ethereum blockchain
     Install ipfs-http-client for IPFS integration
     "npm install web3 ipfs-http-client"
+12) Install multer for file upload functionality "npm install multer"

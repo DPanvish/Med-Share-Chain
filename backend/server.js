@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './lib/db.js';
 import authRoutes from './routes/auth.routes.js';
+import recordRoutes from './routes/record.routes.js';
 
 dotenv.config();
 
@@ -24,7 +25,8 @@ app.get('/', (req, res) => {
     res.send("Health-E-Chain Backend is running");
 });
 
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/records", recordRoutes);
 
 // --- Start the Server ---
 app.listen(PORT, () => {
