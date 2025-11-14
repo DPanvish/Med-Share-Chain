@@ -1,5 +1,8 @@
+import dotenv from 'dotenv';
 import Web3 from 'web3';
 import abi from './AccessControl.json' with {type: 'json'};
+
+dotenv.config();
 
 const providerUrl = process.env.GANACHE_URL;
 const contractAddress = process.env.CONTRACT_ADDRESS;

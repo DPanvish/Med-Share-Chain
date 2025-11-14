@@ -12257,12 +12257,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x5e62CC0a28f5181C48F281C169Bd0DA29833c03D",
-      "transactionHash": "0xb290d8690993a905385179e8be748165861b2835d65c96435dbd7e7042ff8492"
+      "address": "0x79BDfB88c8E004dc9B9b5860E61A48d8DAd06634",
+      "transactionHash": "0xef93dae1d62ce9f5fea38737c287f6dd06e6b09c06ce35c79feb58b2f3a24775"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-11-11T15:17:00.842Z",
+  "updatedAt": "2025-11-14T17:57:25.097Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "Manages patient-centric access control for Electronic Health Records (EHR's). Patients can register, upload record hashes (from IPFS), and grant/revoke access to those records for healthcare providers. All access attempts are logged as events for an immutable audit trail.",

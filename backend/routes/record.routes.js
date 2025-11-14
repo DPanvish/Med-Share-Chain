@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadToIPFS } from "../controllers/record.controller.js";
+import { uploadToIPFS, getRecordFromIPFS } from "../controllers/record.controller.js";
 
 const router = express.Router();
 
@@ -13,6 +13,7 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 }
 })
 
-router.post('/upload', upload.single('file'), uploadToIPFS);
+router.post('/upload', upload.single('file'), uploadToIPFS)
+router.get('/:hash', getRecordFromIPFS);
 
 export default router;
