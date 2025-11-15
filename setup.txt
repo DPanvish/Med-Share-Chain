@@ -18,3 +18,5 @@
     Install ipfs-http-client for IPFS integration
     "npm install web3 ipfs-http-client"
 12) Install multer for file upload functionality "npm install multer"
+
+13) Now lets move to the frontend part. Install vite react "npm create vite@latest ./"
