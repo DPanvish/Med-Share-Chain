@@ -22,3 +22,4 @@
 13) Now lets move to the frontend part. Install vite react "npm create vite@latest ./"
 14) Install ethers library for interacting with the ethereum, axios for making http requests, react-router-dom for routing
     "npm install ethers axios react-router-dom"
+15) Install tailwindcss "npm install tailwindcss@latest @tailwindcss/vite@latest"
