@@ -1,30 +1,17 @@
 import React, {useState} from 'react'
 import {ethers} from "ethers";
+import {useAuth} from "../context/AuthContext.jsx";
 
 const WalletConnect = () => {
-    const [walletAddress, setWalletAddress] = useState(null);
+    const {walletAddress, connectWallet, disconnectWallet} = useAuth();
     const [error, setError] = useState(null);
 
-    const connectWallet = async()=> {
+
+    const handleConnect = async() => {
         setError(null);
-        if(window.ethereum) {
-            try{
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const accounts = await provider.send("eth_requestAccounts", []);
-                const signer = provider.getSigner();
-                const address = accounts[0];
-                if (address) {
-                    setWalletAddress(address);
-                    console.log("Wallet connected:", address);
-                } else {
-                    setError("No accounts found. Please check your wallet.");
-                }
-            }catch(err){
-                console.error(err);
-                setError("Failed to connect wallet. Please check console for details.");
-            }
-        }else{
-            setError("Please install MetaMask to connect your wallet.")
+        const result = await connectWallet();
+        if(!result.success){
+            setError(result.error);
         }
     };
 
@@ -44,7 +31,7 @@ const WalletConnect = () => {
                     </p>
 
                     <button
-                        onClick={() => setWalletAddress(null)}
+                        onClick={disconnectWallet}
                         className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200"
                     >
                         Disconnect Wallet
@@ -59,7 +46,7 @@ const WalletConnect = () => {
                         Connect your wallet to manage your health records.
                     </p>
                     <button
-                        onClick={connectWallet}
+                        onClick={handleConnect}
                         className="w-full text-lg font-bold py-3 px-6 rounded-lg transition-all duration-30 bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-x transform hover:-translate-y-1"
                     >
                         Connect Wallet
