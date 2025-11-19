@@ -20,7 +20,7 @@ const Dashboard = () => {
                 <div className="font-bold text-xl text-emerald-400">MedShare Chain</div>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
-                        {wallteAddress?.substring(0, 6)}...{walletAddress?.substring(38)}
+                        {walletAddress?.substring(0, 6)}...{walletAddress?.substring(38)}
                     </span>
 
                     <button

@@ -15,7 +15,7 @@ const HomePage = () => {
 
 
     return (
-        <div className"min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
             <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 {/* Left Column: Text */}
                 <div className="space-y-6">
