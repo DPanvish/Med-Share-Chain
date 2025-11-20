@@ -15,7 +15,7 @@ const HomePage = () => {
                 setCheckingUser(true);
 
                 try{
-                    const user = api.getUser(walletAddress);
+                    const user = await api.getUser(walletAddress);
 
                     if(user){
                         navigate("/dashboard");
