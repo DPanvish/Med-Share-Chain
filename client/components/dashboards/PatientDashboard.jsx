@@ -1,7 +1,53 @@
 import React, {useState} from 'react'
+import { ethers } from "ethers";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { api } from "../../services/api.js";
+
+// Import Artifacts
+import AccessControl from "../../artifacts/AccessControl.json";
+import { CONTRACT_ADDRESS} from "../../artifacts/contractAddress.js";
 
 const PatientDashboard = ({user}) => {
+    const { signer } = useAuth();
     const [activeTab, setActiveTab] = useState("records"); // records | upload | access
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [status, setStatus] = useState("");
+
+    const handleFileChange = (e) => {
+        if(e.target.files[0]){
+            setFile(e.target.files[0]);
+            setStatus("");
+        }
+    }
+
+    const handleUpload = async() => {
+        if(!file || !signer){
+            return;
+        }
+
+        try{
+            setUploading(true);
+            setStatus("Step 1/3 Uploading...");
+
+            const data = await api.uploadFile(file);
+            const ipfsHash = data.ipfsHash;
+
+            setStatus("Step 2/3 Waiting for Wallet Signature...");
+
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+
+            const tx = await contract.uploadRecord(ipfsHash);
+
+            setStatus("Step 3/3 Waiting for Transaction Confirmation...");
+            setFile(null);
+        }catch (err){
+            console.error("Upload failed:", err);
+            setStatus("Upload failed: " + (err.message || "Unknown Error"));
+        }finally{
+            setUploading(false);
+        }
+    }
 
     return (
         <div className="max-w-6xl mx-auto">
