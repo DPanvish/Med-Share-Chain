@@ -18,6 +18,19 @@ export const api = {
     registerUser: async(userData) => {
         const response = await axios.post(`${API_URL}/auth/register`, userData);
         return response.data;
+    },
+
+    uploadFile: async(file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await axios.post(`${API_URL}/records/upload`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        return response.data;
     }
 };
 
