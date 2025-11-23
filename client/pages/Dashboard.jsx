@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react'
 import {useAuth} from "../context/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
 import {api} from "../services/api.js";
+import PatientDashboard from "../components/dashboards/PatientDashboard.jsx";
+import ProviderDashboard from "../components/dashboards/ProviderDashboard.jsx";
 
 const Dashboard = () => {
     const {walletAddress, disconnectWallet} = useAuth();
