@@ -54,8 +54,20 @@ export const getRecordFromIPFS = async(req, res) => {
             return res.status(400).json({message: "Missing patientAddress or providerAddress query parameters"});
         }
 
-        console.log(`Checking access for: Patient ${checkedPatientAddress}, Provider ${checkedProviderAddress}`);
+        console.log(`Checking access for: Patient ${checkedPatientAddress}, Provider ${checkedProviderAddress}, Hash ${hash}`);
 
+        if(checkedProviderAddress === checkedPatientAddress){
+            console.log("Access GRANTED (Owner). Fetching file from IPFS...");
+            const fileStream = ipfs.cat(hash);
+            res.setHeader('Content-Type', 'application/octet-stream');
+
+            for await (const chunk of fileStream){
+                res.write(chunk);
+            }
+
+            res.end();
+            return;
+        }
         const hasAccess = await contract.methods
             .checkAccess(checkedPatientAddress, checkedProviderAddress, hash)
             .call();
