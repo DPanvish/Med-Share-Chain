@@ -2,9 +2,12 @@ import React, {useState} from 'react'
 import {useAuth} from "../context/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
 import {api} from "../services/api.js";
+import {ethers} from "ethers";
+import AccessControl from '../artifacts/AccessControl.json';
+import {CONTRACT_ADDRESS} from "../artifacts/contractAddress.js";
 
 const RegisterPage = () => {
-    const {walletAddress} = useAuth();
+    const {walletAddress, signer} = useAuth();
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -12,13 +15,37 @@ const RegisterPage = () => {
     const [hospital, setHospital] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [status, setStatus] = useState("");
 
     const handleSubmit = async(e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setStatus("Initialising registration...")
 
         try{
+
+            if(!signer){
+                throw new Error("Wallet not connected");
+            }
+
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+
+            setStatus("Step 1/3: Please sign transaction in MetaMask...");
+
+            let tx;
+
+            if(role === "patient"){
+                tx = await contract.registerPatient(name);
+            }else{
+                tx = await contract.registerProvider(name, hospital);
+            }
+
+            setStatus('Step 2/3: Waiting for block confirmation...');
+            await tx.wait();
+
+            setStatus('Step 3/3: Saving profile to database...');
+
             await api.registerUser({
                 walletAddress,
                 name,
@@ -28,10 +55,16 @@ const RegisterPage = () => {
 
             navigate("/dashboard");
         }catch(err){
-            console.error(err);
-            setError("Registration failed. Please try again later.");
+            console.error("Registration failed:", err);
+
+            if (err.code === 'ACTION_REJECTED') {
+                setError("You rejected the transaction in MetaMask.");
+            } else {
+                setError("Registration failed: " + (err.reason || err.message));
+            }
         }finally{
             setLoading(false);
+            setStatus("")
         }
     }
     return (
@@ -43,6 +76,7 @@ const RegisterPage = () => {
                 </p>
 
                 {error && <div className="bg-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">{error}</div>}
+                {status && <div className="bg-blue-500/20 text-blue-400 p-3 rounded mb-4 text-sm animate-pulse">{status}</div>}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Name Input */}

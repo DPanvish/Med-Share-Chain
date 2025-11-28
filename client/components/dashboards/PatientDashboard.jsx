@@ -74,7 +74,7 @@ const PatientDashboard = ({user}) => {
 
             // If we are on the records tab, refresh list
             if (activeTab === 'records'){
-                await fetchRecords();
+                fetchRecords();
             }
         }catch (err){
             console.error("Upload failed:", err);
