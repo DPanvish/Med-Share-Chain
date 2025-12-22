@@ -15,6 +15,9 @@ const PatientDashboard = ({user}) => {
     const [status, setStatus] = useState("");
     const [records, setRecords] = useState([]);
     const [loadingRecords, setLoadingRecords] = useState(false);
+    const [accessAddress, setAccessAddress] = useState("");
+    const [accessHash, setAccessHash] = useState("");
+    const [granting, setGranting] = useState(false);
 
     const fetchRecords = useCallback(async () => {
         if(!signer){
@@ -86,18 +89,35 @@ const PatientDashboard = ({user}) => {
 
     // View File
     const viewFile = (hash) => {
-        // We open the backend route in a new tab
-        // We must pass the patientAddress (me) and providerAddress (me)
-        // Since I am the patient, I always have access to my own files.
-        // However, our backend checkAccess logic asks "Does Provider have access?"
-        // The Smart Contract logic usually implies the Owner always has access,
-        // BUT for our specific 'checkAccess' function, we might need to self-grant or just bypass
-        // if the backend checks "is patientAddress == providerAddress".
-
         // For now, let's try the direct route assuming the backend handles owner access:
         const url = `http://localhost:8080/api/records/${hash}?patientAddress=${walletAddress}&providerAddress=${walletAddress}`;
         window.open(url, '_blank');
     };
+
+    // Grant Access Function
+    const handleGrantAccess = async() => {
+        if(!signer || !accessAddress || !accessHash){
+            return;
+        }
+
+        try{
+            setGranting(true);
+            setStatus("Please sign transaction to Grant Access...");
+
+            const tx = await contract.grantAccess(accessAddress, accessHash);
+            setStatus("Waiting for confirmation...");
+            await tx.wait();
+
+            setStatus(`Success! Access granted to ${accessAddress.substring(0, 6)}...`);
+            setAccessAddress("");
+            setAccessHash("");
+        }catch(err){
+            console.error("Grant Access failed:", err);
+            setStatus("Grant Access failed: " + (err.message || err.reason));
+        }finally {
+            setGranting(false);
+        }
+    }
 
     return (
         <div className="max-w-6xl mx-auto">
@@ -200,8 +220,45 @@ const PatientDashboard = ({user}) => {
                 )}
 
                 {activeTab === 'access' && (
-                    <div className="text-center py-10 text-slate-400">
-                        <p>Access Control features coming next.</p>
+                    <div className="max-w-xl mx-auto space-y-6">
+                        <div className="bg-slate-900 p-6 rounded-lg border border-slate-700">
+                            <h4 className="font-semibold text-white mb-4 text-lg">Grant Access to Doctor</h4>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-slate-400 mb-1">Doctor's Wallet Address</label>
+                                    <input
+                                        type="text"
+                                        value={accessAddress}
+                                        onChange={(e) => setAccessAddress(e.target.value)}
+                                        className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-emerald-500 outline-none"
+                                        placeholder="ex. 0x1234567890123456789012345678901234567890"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-slate-400 mb-1">Record IPFS Hash</label>
+                                    <input
+                                        type="text"
+                                        value={accessHash}
+                                        onChange={(e) => setAccessHash(e.target.value)}
+                                        className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-emerald-500 outline-none"
+                                        placeholder="ex. QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
+                                    />
+                                </div>
+
+                                {status && <div className={`text-sm p-3 rounded ${status.includes("Success") ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-300"}`}>{status}</div>}
+
+                                <button
+                                    onClick={handleGrantAccess}
+                                    disabled={!accessAddress || !accessHash || granting}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
+                                >
+                                    {granting ? 'Processing...' : 'Grant Permission'}
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
                 )}
 
