@@ -1,4 +1,4 @@
-import {createContext, useContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import {ethers} from "ethers";
 
 
@@ -8,6 +8,33 @@ export const AuthProvider = ({children}) => {
     const [walletAddress, setWalletAddress] = useState(null);
     const [provider, setProvider] = useState(null);
     const [signer, setSigner] = useState(null);
+
+    useEffect(() => {
+        if(window.ethereum){
+            // Listen for account changes
+            window.ethereum.on("accountsChanged", (accounts) => {
+                if(accounts.length > 0){
+                    console.log("Account changed detected:", accounts[0]);
+                    window.location.reload();
+                }else{
+                    disconnectWallet();
+                }
+            });
+
+            // Listen for network changes
+            window.ethereum.on("chainChanged", (chainId) => {
+                console.log("Chain changed detected:", chainId);
+                window.location.reload();
+            });
+        }
+
+        return () => {
+            if(window.ethereum && window.ethereum.removeListener){
+                window.ethereum.removeListener("accountsChanged", () => {});
+                window.ethereum.removeListener("chainChanged", () => {});
+            }
+        }
+    }, []);
 
     const connectWallet = async() => {
         if(window.ethereum){
