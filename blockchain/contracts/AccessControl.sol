@@ -146,4 +146,11 @@ contract AccessControl {
         return patients[msg.sender].recordHashes;
     }
 
+    /**
+     * @dev NEW FUNCTION: Allows a provider (or public) to see the list of records
+     * for a specific patient address. This is required for the Provider Search.
+     */
+    function getPatientRecords(address _patient) public view returns (string[] memory) {
+        return patients[_patient].recordHashes;
+    }
 }
