@@ -12,27 +12,38 @@ const ProviderDashboard = ({user}) => {
     const [msg, setMsg] = useState("");
 
     const handleSearch = async() => {
-        if(!signer || !searchAddress){
-            setLoading(true);
-            setMsg("");
-            setPatientRecords([]);
+        console.log("1. Search button clicked");
 
-            try{
-                const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+        if (!signer || !searchAddress) {
+            console.log("Missing signer or address");
+            return;
+        }
 
-                const records = await contract.getPatientRecords(searchAddress);
+        setLoading(true);
+        setMsg('');
+        setPatientRecords([]);
 
-                if(records.length === 0){
-                    setMsg("No records found for this patient.");
-                }else{
-                    setPatientRecords(Array.from(records));
-                }
-            }catch(err){
-                console.error("Error fetching patient records:", err);
-                setMsg("Error fetching patient records. Ensure address is valid and patient has registered with the app.");
-            }finally{
-                setLoading(false);
+        try {
+            console.log("2. initializing contract...");
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+
+            console.log("3. Calling getPatientRecords for:", searchAddress);
+
+            const records = await contract.getPatientRecords(searchAddress);
+
+            console.log("4. Raw result:", records);
+
+            if (records.length === 0) {
+                setMsg('No records found for this patient.');
+            } else {
+                setPatientRecords(Array.from(records));
             }
+
+        } catch (err) {
+            console.error("CRITICAL ERROR:", err);
+            setMsg('Error: ' + (err.reason || err.message));
+        } finally {
+            setLoading(false);
         }
     }
 
