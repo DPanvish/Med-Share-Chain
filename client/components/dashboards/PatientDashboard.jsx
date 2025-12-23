@@ -97,12 +97,15 @@ const PatientDashboard = ({user}) => {
     // Grant Access Function
     const handleGrantAccess = async() => {
         if(!signer || !accessAddress || !accessHash){
+            setStatus('Please provide both a doctor address and a record hash.');
             return;
         }
 
         try{
             setGranting(true);
             setStatus("Please sign transaction to Grant Access...");
+
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
 
             const tx = await contract.grantAccess(accessAddress, accessHash);
             setStatus("Waiting for confirmation...");
@@ -113,7 +116,11 @@ const PatientDashboard = ({user}) => {
             setAccessHash("");
         }catch(err){
             console.error("Grant Access failed:", err);
-            setStatus("Grant Access failed: " + (err.message || err.reason));
+            if (err.code === 'ACTION_REJECTED') {
+                setStatus('Transaction was rejected in MetaMask.');
+            } else {
+                setStatus('Grant failed: ' + (err.reason || err.message));
+            }
         }finally {
             setGranting(false);
         }
