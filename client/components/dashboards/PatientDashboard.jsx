@@ -126,6 +126,35 @@ const PatientDashboard = ({user}) => {
         }
     }
 
+    // Revoke Access Function
+    const handleRevokeAccess = async() => {
+        if(!signer || !accessAddress || !accessHash){
+            setStatus('Please provide both a doctor address and a record hash.');
+            return;
+        }
+
+        try{
+            setGranting(true);
+            setStatus("Please sign transaction to Revoke Access...");
+
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+
+            const tx = await contract.revokeAccess(accessAddress, accessHash);
+
+            setStatus("Waiting for confirmation...");
+            await tx.wait();
+
+            setStatus(`Success! Access revoked for ${accessAddress.substring(0, 6)}...`);
+            setAccessAddress("");
+            setAccessHash("");
+        }catch(err){
+            console.error("Revoke Access failed:", err);
+            setStatus('Revoke failed: ' + (err.reason || err.message));
+        }finally {
+            setGranting(false);
+        }
+    }
+
     return (
         <div className="max-w-6xl mx-auto">
             <header className="mb-8">
@@ -256,13 +285,23 @@ const PatientDashboard = ({user}) => {
 
                                 {status && <div className={`text-sm p-3 rounded ${status.includes("Success") ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-300"}`}>{status}</div>}
 
-                                <button
-                                    onClick={handleGrantAccess}
-                                    disabled={!accessAddress || !accessHash || granting}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
-                                >
-                                    {granting ? 'Processing...' : 'Grant Permission'}
-                                </button>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={handleGrantAccess}
+                                        disabled={!accessAddress || !accessHash || granting}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
+                                    >
+                                        {granting ? 'Processing...' : 'Grant Permission'}
+                                    </button>
+
+                                    <button
+                                        onClick={handleRevokeAccess}
+                                        disabled={granting || !accessAddress || !accessHash}
+                                        className="bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
+                                    >
+                                        Revoke Access
+                                    </button>
+                                </div>
 
                             </div>
                         </div>
