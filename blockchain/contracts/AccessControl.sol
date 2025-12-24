@@ -28,11 +28,21 @@ contract AccessControl {
         bool isRegistered;
     }
 
+    // Struct to track a shared file
+    struct SharedRecord{
+        address patient;
+        string recordHash;
+        uint256 sharedAt;
+    }
+
     // Stores patient data, mapping wallet address to Patient struct
     mapping(address => Patient) public patients;
 
     // Stores provider data, mapping wallet address to Provider struct
     mapping(address => Provider) public providers;
+
+    // Stores the provider shred records
+    mapping(address => SharedRecord[]) public providerSharedRecords;
 
     /**
      * @dev The core of the system.
@@ -113,6 +123,13 @@ contract AccessControl {
     function grantAccess(address _providerAddress, string memory _recordHash) public onlyPatient{
         require(providers[_providerAddress].isRegistered, "Provider is not registered");
         permissions[msg.sender][_providerAddress][_recordHash] = true;
+        
+        providerSharedRecords[_providerAddress].push(SharedRecord({
+            patient: msg.sender,
+            recordHash: _recordHash,
+            sharedAt: block.timestamp
+        }));
+        
         emit AccessGranted(msg.sender, _providerAddress, _recordHash, block.timestamp);
     }
 
@@ -152,5 +169,14 @@ contract AccessControl {
      */
     function getPatientRecords(address _patient) public view returns (string[] memory) {
         return patients[_patient].recordHashes;
+    }
+    
+    /**
+     * @dev Retrieves all shared records that have been granted access to a specific provider
+     * This function allows providers to view all records they have been granted access to,
+     * including the patient address and when the access was granted
+     */
+    function getProviderSharedRecords(address _provider) public view returns (SharedRecord[] memory){
+        return providerSharedRecords[_provider];
     }
 }
