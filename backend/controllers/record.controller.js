@@ -63,10 +63,17 @@ export const getRecordFromIPFS = async(req, res) => {
         if(checkedProviderAddress === checkedPatientAddress){
             console.log("Access GRANTED (Owner)");
         }else{
-            console.log("Checking blockchain access...");
+            console.log("--- PERMISSION CHECK DEBUG ---");
+            console.log("Contract Address:", process.env.CONTRACT_ADDRESS);
+            console.log("Patient:", checkedPatientAddress);
+            console.log("Provider (You):", checkedProviderAddress);
+            console.log("File Hash:", hash);
+
             const hasAccess = await contract.methods
                 .checkAccess(checkedPatientAddress, checkedProviderAddress, hash)
                 .call();
+
+            console.log("Blockchain replied:", hasAccess)
 
             if(!hasAccess){
                 return res.status(401).json({message: "Unauthorized: You do not have permission to access this record"});
