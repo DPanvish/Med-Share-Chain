@@ -1,13 +1,14 @@
-import React, {useState} from 'react'
-import {useAuth} from "../context/AuthContext.jsx";
-import {useNavigate} from "react-router-dom";
-import {api} from "../services/api.js";
-import {ethers} from "ethers";
+import React, { useState } from 'react';
+import { useAuth } from "../context/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
+import { api } from "../services/api.js";
+import { ethers } from "ethers";
 import AccessControl from '../artifacts/AccessControl.json';
-import {CONTRACT_ADDRESS} from "../artifacts/contractAddress.js";
+import { CONTRACT_ADDRESS } from "../artifacts/contractAddress.js";
+import { User, Building2, ShieldCheck, Loader2, Wallet, ArrowRight, Activity, CheckCircle } from 'lucide-react';
 
 const RegisterPage = () => {
-    const {walletAddress, signer} = useAuth();
+    const { walletAddress, signer } = useAuth();
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -17,15 +18,14 @@ const RegisterPage = () => {
     const [error, setError] = useState(null);
     const [status, setStatus] = useState("");
 
-    const handleSubmit = async(e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         setStatus("Initialising registration...")
 
-        try{
-
-            if(!signer){
+        try {
+            if (!signer) {
                 throw new Error("Wallet not connected");
             }
 
@@ -34,10 +34,9 @@ const RegisterPage = () => {
             setStatus("Step 1/3: Please sign transaction in MetaMask...");
 
             let tx;
-
-            if(role === "patient"){
+            if (role === "patient") {
                 tx = await contract.registerPatient(name);
-            }else{
+            } else {
                 tx = await contract.registerProvider(name, hospital);
             }
 
@@ -45,7 +44,6 @@ const RegisterPage = () => {
             await tx.wait();
 
             setStatus('Step 3/3: Saving profile to database...');
-
             await api.registerUser({
                 walletAddress,
                 name,
@@ -54,31 +52,92 @@ const RegisterPage = () => {
             });
 
             navigate("/dashboard");
-        }catch(err){
+        } catch (err) {
             console.error("Registration failed:", err);
-
             if (err.code === 'ACTION_REJECTED') {
                 setError("You rejected the transaction in MetaMask.");
             } else {
                 setError("Registration failed: " + (err.reason || err.message));
             }
-        }finally{
+        } finally {
             setLoading(false);
             setStatus("")
         }
     }
-    return (
-        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-6">
-            <div className="bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700 w-full max-w-md">
-                <h2 className="text-3xl font-bold text-emerald-400 mb-2">Complete Profile</h2>
-                <p className="text-slate-400 mb-8">
-                    Wallet Connected: <span className="font-mono text-xs bg-slate-900 px-2 py-1 rounded">{walletAddress}</span>
-                </p>
 
-                {error && <div className="bg-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">{error}</div>}
-                {status && <div className="bg-blue-500/20 text-blue-400 p-3 rounded mb-4 text-sm animate-pulse">{status}</div>}
+    return (
+        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+
+            {/* Background Decoration Blobs */}
+            <div className="absolute top-[10%] left-[10%] w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px]"></div>
+            <div className="absolute bottom-[10%] right-[10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[80px]"></div>
+
+            <div className="glass-panel w-full max-w-lg p-8 rounded-3xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
+                        <ShieldCheck size={32} className="text-white" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">Complete Profile</h2>
+                    <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+                        <Wallet size={14} />
+                        <span>Connected:</span>
+                        <span className="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            {walletAddress?.substring(0, 6)}...{walletAddress?.substring(38)}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Status / Error Messages */}
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-start gap-3">
+                        <Activity className="shrink-0" size={18} />
+                        {error}
+                    </div>
+                )}
+
+                {status && (
+                    <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 p-4 rounded-xl mb-6 text-sm flex items-center gap-3 animate-pulse">
+                        <Loader2 className="animate-spin shrink-0" size={18} />
+                        {status}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+
+                    {/* Role Selection */}
+                    <div>
+                        <label className="text-sm font-medium text-slate-300 mb-2 block">I am a...</label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setRole("patient")}
+                                className={`p-4 rounded-xl border text-center transition-all duration-300 flex flex-col items-center gap-2 ${
+                                    role === "patient"
+                                        ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-900/50 scale-[1.02]"
+                                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-emerald-500/50"
+                                }`}
+                            >
+                                <User size={24} />
+                                <span className="font-semibold">Patient</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setRole('provider')}
+                                className={`p-4 rounded-xl border text-center transition-all duration-300 flex flex-col items-center gap-2 ${
+                                    role === 'provider'
+                                        ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/50 scale-[1.02]"
+                                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-blue-500/50"
+                                }`}
+                            >
+                                <Building2 size={24} />
+                                <span className="font-semibold">Doctor</span>
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Name Input */}
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
@@ -86,67 +145,42 @@ const RegisterPage = () => {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-600 rounded p-3 text-white focus:border-emerald-500 focus:outline-none"
+                            className="glass-input w-full p-3 rounded-xl"
                             required
-                            placeholder="ex. John Doe"
+                            placeholder="e.g. John Doe"
                         />
                     </div>
 
-                    {/* Role Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">I am a...</label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setRole("patient")}
-                                className={`p-3 rounded border text-center transition-all cursor-pointer ${
-                                    role === "patient"
-                                        ? "bg-emerald-600 text-white border-emerald-500"
-                                        : "bg-slate-900 border-slate-600 text-slate-400 hover:border-emerald-500"
-                                }`}
-                            >
-                                Patient
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setRole('provider')}
-                                className={`p-3 rounded border text-center transition-all cursor-pointer ${
-                                    role === 'provider'
-                                        ? 'bg-blue-600 border-blue-500 text-white'
-                                        : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-blue-500'
-                                }`}
-                            >
-                                Healthcare Provider
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Hospital Input (Only if Provider) */}
+                    {/* Hospital Input (Conditional) */}
                     {role === "provider" && (
-                        <div className="animate-fade-in">
+                        <div className="animate-in fade-in slide-in-from-top-2">
                             <label className="block text-sm font-medium text-slate-300 mb-1">Hospital / Organization</label>
                             <input
                                 type="text"
                                 value={hospital}
                                 onChange={(e) => setHospital(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-600 rounded p-3 text-white focus:border-blue-500 focus:outline-none"
+                                className="glass-input w-full p-3 rounded-xl"
                                 required
-                                placeholder="ex. City General Hospital"
+                                placeholder="e.g. City General Hospital"
                             />
                         </div>
                     )}
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-full btn-primary py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? "Creating Profile..." : "Complete Registration"}
+                        {loading ? (
+                            <>Processing Transaction...</>
+                        ) : (
+                            <>Complete Registration <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></>
+                        )}
                     </button>
                 </form>
             </div>
         </div>
     )
 }
-export default RegisterPage
+export default RegisterPage;
