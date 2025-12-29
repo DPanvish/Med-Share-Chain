@@ -1,229 +1,225 @@
-import React, {useCallback, useEffect, useState} from 'react'
-import { ethers } from "ethers";
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from "../../context/AuthContext.jsx";
-import { api } from "../../services/api.js";
+import { ethers } from "ethers";
+import { CONTRACT_ADDRESS } from "../../artifacts/contractAddress.js";
+import AccessControl from '../../artifacts/AccessControl.json';
+import axios from "axios";
+import { Upload, FileText, Share2, ShieldAlert, Copy, CheckCircle, Activity, User } from 'lucide-react';
 
-// Import Artifacts
-import AccessControl from "../../artifacts/AccessControl.json";
-import { CONTRACT_ADDRESS} from "../../artifacts/contractAddress.js";
-
-const PatientDashboard = ({user}) => {
+const PatientDashboard = ({ user }) => {
     const { signer, walletAddress } = useAuth();
-    const [activeTab, setActiveTab] = useState("records"); // records | upload | access
+
+    // Tabs: 'records' | 'access'
+    const [activeTab, setActiveTab] = useState('records');
     const [file, setFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [status, setStatus] = useState("");
     const [records, setRecords] = useState([]);
     const [loadingRecords, setLoadingRecords] = useState(false);
-    const [accessAddress, setAccessAddress] = useState("");
-    const [accessHash, setAccessHash] = useState("");
+    const [uploading, setUploading] = useState(false);
+
+    // Access Control States
+    const [accessAddress, setAccessAddress] = useState('');
+    const [accessHash, setAccessHash] = useState('');
     const [granting, setGranting] = useState(false);
+    const [status, setStatus] = useState('');
 
+    // Fetch Records
     const fetchRecords = useCallback(async () => {
-        if(!signer){
-            return;
-        }
-
+        if (!signer) return;
         setLoadingRecords(true);
-
-        try{
+        try {
             const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
-
-            // Call the smart contract
             const myHashes = await contract.getMyRecords();
-
-            // myHashes is a Proxy array, lets convert it to a regular JS array
-            setRecords(Array.from(myHashes));
-        }catch(err){
-            console.error("Error fetching records:", err);
-        }finally {
+            // Reverse to show newest first
+            setRecords(Array.from(myHashes).reverse());
+        } catch (error) {
+            console.error("Error fetching records:", error);
+        } finally {
             setLoadingRecords(false);
         }
-    }, [signer])
+    }, [signer]);
 
     useEffect(() => {
-        if(activeTab === "records"){
-            fetchRecords();
-        }
-    }, [activeTab, fetchRecords]);
+        fetchRecords();
+    }, [fetchRecords]);
 
-    const handleFileChange = (e) => {
-        if(e.target.files[0]){
-            setFile(e.target.files[0]);
-            setStatus("");
-        }
-    }
+    // Upload Function
+    const handleUpload = async () => {
+        if (!file || !signer) return;
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
 
-    const handleUpload = async() => {
-        if(!file || !signer){
-            return;
-        }
+            const res = await axios.post(`http://localhost:8080/api/ipfs/upload?patientAddress=${walletAddress}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-        try{
-            setUploading(true);
-            setStatus('Step 1/2: Uploading to IPFS...');
-            const data = await api.uploadFile(file);
-            const ipfsHash = data.ipfsHash;
-
-            setStatus('Step 2/2: Waiting for Wallet Signature...');
+            const { hash } = res.data;
             const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
-            const tx = await contract.uploadRecord(ipfsHash);
-
-            setStatus('Waiting for block confirmation...');
+            const tx = await contract.uploadRecord(hash);
             await tx.wait();
 
-            setStatus(`Success! Hash: ${ipfsHash}`);
             setFile(null);
-
-            // If we are on the records tab, refresh list
-            if (activeTab === 'records'){
-                fetchRecords();
-            }
-        }catch (err){
-            console.error("Upload failed:", err);
-            setStatus("Upload failed: " + (err.message || "Unknown Error"));
-        }finally{
+            fetchRecords(); // Refresh list
+            alert("Upload Successful!");
+        } catch (error) {
+            console.error("Upload failed:", error);
+            alert("Upload failed. See console.");
+        } finally {
             setUploading(false);
         }
     };
 
-    // View File
-    const viewFile = (hash) => {
-        // For now, let's try the direct route assuming the backend handles owner access:
-        const url = `http://localhost:8080/api/records/${hash}?patientAddress=${walletAddress}&providerAddress=${walletAddress}`;
-        window.open(url, '_blank');
+    // Grant Access
+    const handleGrantAccess = async () => {
+        if (!signer || !accessAddress || !accessHash) {
+            setStatus('Please fill in all fields.');
+            return;
+        }
+        try {
+            setGranting(true);
+            setStatus('Signing transaction...');
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+            const tx = await contract.grantAccess(accessAddress, accessHash);
+            setStatus('Waiting for confirmation...');
+            await tx.wait();
+            setStatus(`Success! Access granted.`);
+            setAccessAddress('');
+            setAccessHash('');
+        } catch (error) {
+            setStatus('Error: ' + (error.reason || error.message));
+        } finally {
+            setGranting(false);
+        }
     };
 
-    // Grant Access Function
-    const handleGrantAccess = async() => {
-        if(!signer || !accessAddress || !accessHash){
-            setStatus('Please provide both a doctor address and a record hash.');
-            return;
-        }
-
-        try{
+    // Revoke Access
+    const handleRevokeAccess = async () => {
+        if (!signer || !accessAddress || !accessHash) return;
+        try {
             setGranting(true);
-            setStatus("Please sign transaction to Grant Access...");
-
+            setStatus('Signing revocation...');
             const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
-
-            const tx = await contract.grantAccess(accessAddress, accessHash);
-            setStatus("Waiting for confirmation...");
-            await tx.wait();
-
-            setStatus(`Success! Access granted to ${accessAddress.substring(0, 6)}...`);
-            setAccessAddress("");
-            setAccessHash("");
-        }catch(err){
-            console.error("Grant Access failed:", err);
-            if (err.code === 'ACTION_REJECTED') {
-                setStatus('Transaction was rejected in MetaMask.');
-            } else {
-                setStatus('Grant failed: ' + (err.reason || err.message));
-            }
-        }finally {
-            setGranting(false);
-        }
-    }
-
-    // Revoke Access Function
-    const handleRevokeAccess = async() => {
-        if(!signer || !accessAddress || !accessHash){
-            setStatus('Please provide both a doctor address and a record hash.');
-            return;
-        }
-
-        try{
-            setGranting(true);
-            setStatus("Please sign transaction to Revoke Access...");
-
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
-
             const tx = await contract.revokeAccess(accessAddress, accessHash);
-
-            setStatus("Waiting for confirmation...");
             await tx.wait();
-
-            setStatus(`Success! Access revoked for ${accessAddress.substring(0, 6)}...`);
-            setAccessAddress("");
-            setAccessHash("");
-        }catch(err){
-            console.error("Revoke Access failed:", err);
-            setStatus('Revoke failed: ' + (err.reason || err.message));
-        }finally {
+            setStatus(`Success! Access revoked.`);
+            setAccessAddress('');
+            setAccessHash('');
+        } catch (error) {
+            setStatus('Error: ' + (error.reason || error.message));
+        } finally {
             setGranting(false);
         }
-    }
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert("Copied to clipboard!");
+    };
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-white">Welcome, {user.name}</h1>
-                <p className="text-slate-400 mt-1">Manage your personal records securely.</p>
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+            {/* Header */}
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center glass-panel p-8 rounded-2xl">
+                <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-200 bg-clip-text text-transparent">
+                        Patient Portal
+                    </h1>
+                    <p className="text-slate-400 mt-2 flex items-center gap-2">
+                        <User size={18} className="text-blue-400" />
+                        Welcome back, {user.name}
+                    </p>
+                </div>
+                <div className="mt-4 md:mt-0 flex gap-4">
+                    <div className="text-right">
+                        <p className="text-xs text-slate-500 uppercase font-semibold">Wallet Connected</p>
+                        <p className="text-emerald-400 font-mono text-sm">{walletAddress.substring(0,6)}...{walletAddress.substring(38)}</p>
+                    </div>
+                </div>
             </header>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-8 border-b border-slate-700 pb-1">
+            <div className="flex gap-4 border-b border-white/10 pb-1">
                 <button
-                    onClick={() => setActiveTab("records")}
-                    className={`pb-3 px-4 font-medium transition-colors ${activeTab === "records" ? "text-emerald-400 border-b-2 border-emerald-400" : "text-slate-400 hover:text-white"} cursor-pointer`}
+                    onClick={() => setActiveTab('records')}
+                    className={`pb-3 px-4 text-sm font-medium transition-all ${activeTab === 'records' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-400 hover:text-white'}`}
                 >
-                    My Records
+                    My Medical Records
                 </button>
-
                 <button
-                    onClick={() => setActiveTab('upload')}
-                    className={`pb-3 px-4 font-medium transition-colors ${activeTab === 'upload' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-slate-400 hover:text-white'} cursor-pointer`}
+                    onClick={() => setActiveTab('access')}
+                    className={`pb-3 px-4 text-sm font-medium transition-all ${activeTab === 'access' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-400 hover:text-white'}`}
                 >
-                    Upload Record
-                </button>
-
-                <button
-                    onClick={() => setActiveTab("access")}
-                    className={`pb-3 px-4 font-medium transition-colors ${activeTab === 'access' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-slate-400 hover:text-white'} cursor-pointer`}
-                >
-                    Access Control
+                    Share & Permissions
                 </button>
             </div>
 
-            {/* Content Area */}
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-lg">
-                {activeTab === "records" && (
-                    <div>
-                        {loadingRecords ? (
-                            <div className="text-center py-10 text-emerald-400 animate-pulse">Loading Blockchain Records...</div>
-                        ) : records.length === 0 ? (
-                            <div className="text-center py-10 text-slate-400">
-                                <p className="text-lg">No records found.</p>
+            {/* TAB: MY RECORDS */}
+            {activeTab === 'records' && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+
+                    {/* Upload Section */}
+                    <div className="glass-panel p-8 rounded-2xl border-dashed border-2 border-white/10 hover:border-blue-500/50 transition-colors">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            <div className="p-4 bg-blue-500/10 rounded-full mb-4">
+                                <Upload size={32} className="text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-white mb-2">Upload New Medical Record</h3>
+                            <p className="text-slate-400 text-sm mb-6 max-w-md">
+                                Upload prescriptions, lab reports, or X-rays. Files are encrypted and stored on IPFS.
+                            </p>
+                            <div className="flex gap-4">
+                                <input
+                                    type="file"
+                                    onChange={(e) => setFile(e.target.files[0])}
+                                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/10 file:text-blue-400 hover:file:bg-blue-500/20 text-slate-300"
+                                />
                                 <button
-                                    onClick={() => setActiveTab('upload')}
-                                    className="text-emerald-400 hover:underline mt-2 cursor-pointer"
+                                    onClick={handleUpload}
+                                    disabled={uploading || !file}
+                                    className="btn-primary px-6 py-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Upload one now!
+                                    {uploading ? 'Uploading...' : 'Upload to Blockchain'}
                                 </button>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {records.map((hash, index) => (
-                                    <div key={index} className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:border-emerald-500 transition-all group">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="bg-slate-800 p-2 rounded text-emerald-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                                </svg>
-                                            </div>
+                        </div>
+                    </div>
 
-                                            <span className="text-xs font-mono bg-slate-800 text-slate-400 px-2 py-1 rounded">
-                                                #{index + 1}
-                                            </span>
+                    {/* Records Grid */}
+                    <div>
+                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <Activity size={20} className="text-emerald-400" />
+                            Your Records History
+                        </h3>
+
+                        {loadingRecords ? (
+                            <div className="text-center text-slate-500 py-12">Loading blockchain data...</div>
+                        ) : records.length === 0 ? (
+                            <div className="text-center text-slate-500 py-12 italic">No records found. Upload your first one above.</div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {records.map((hash, index) => (
+                                    <div key={index} className="glass-panel p-5 rounded-xl group hover:border-blue-400/50 transition-all">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="p-2 bg-white/5 rounded-lg">
+                                                <FileText size={20} className="text-blue-300" />
+                                            </div>
+                                            <span className="text-xs font-mono text-slate-500">#{records.length - index}</span>
                                         </div>
 
-                                        <p className="text-sm text-slate-300 font-mono truncate mb-4" title={hash}>
-                                            {hash}
-                                        </p>
+                                        <div className="mb-4">
+                                            <p className="text-xs text-slate-500 uppercase font-semibold mb-1">IPFS Hash</p>
+                                            <div className="flex items-center gap-2 bg-black/20 p-2 rounded text-xs font-mono text-slate-300">
+                                                <span className="truncate flex-1">{hash}</span>
+                                                <button onClick={() => copyToClipboard(hash)} className="hover:text-white transition-colors">
+                                                    <Copy size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <button
-                                            onClick={() => viewFile(hash)}
-                                            className="w-full bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-300 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
+                                            onClick={() => window.open(`http://localhost:8080/api/records/${hash}?patientAddress=${walletAddress}&providerAddress=${walletAddress}`, '_blank')}
+                                            className="w-full btn-secondary py-2 rounded-lg text-sm hover:bg-blue-500/20 hover:text-blue-300"
                                         >
                                             View Document
                                         </button>
@@ -232,84 +228,79 @@ const PatientDashboard = ({user}) => {
                             </div>
                         )}
                     </div>
-                )}
+                </div>
+            )}
 
-                {activeTab === "upload" && (
-                    <div className="max-w-xl mx-auto text-center">
-                        <h3 className="text-xl font-semibold mb-4 text-emerald-400">Upload Medical Record</h3>
-                        <div className="border-2 border-dashed border-slate-600 rounded-lg p-10 hover:border-emerald-500 transition-colors bg-slate-900/50 relative">
-                            <input
-                                type="file"
-                                onChange={handleFileChange}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            {file ? <p className="text-emerald-400 font-medium">{file.name}</p> : <><p className="text-slate-300">Click or Drag file here</p><p className="text-xs text-slate-500 mt-2">PDF, PNG, JPG (Max 10MB)</p></>}
+            {/* TAB: ACCESS CONTROL */}
+            {activeTab === 'access' && (
+                <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-8">
+                    <div className="glass-panel p-8 rounded-2xl border border-white/10">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-purple-500/20 rounded-xl">
+                                <Share2 className="text-purple-400" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Manage Permissions</h3>
+                                <p className="text-slate-400 text-sm">Grant or revoke doctor access to specific files.</p>
+                            </div>
                         </div>
-                        {status && <div className={`mt-4 text-sm p-3 rounded ${status.includes('Success') ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>{status}</div>}
-                        <button
-                            onClick={handleUpload}
-                            disabled={!file || uploading}
-                            className="mt-6 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg">
-                            {uploading ? 'Processing...' : 'Upload to Blockchain'}
-                        </button>
-                    </div>
-                )}
 
-                {activeTab === 'access' && (
-                    <div className="max-w-xl mx-auto space-y-6">
-                        <div className="bg-slate-900 p-6 rounded-lg border border-slate-700">
-                            <h4 className="font-semibold text-white mb-4 text-lg">Grant Access to Doctor</h4>
+                        <div className="space-y-6">
+                            <div>
+                                <label className="text-sm font-medium text-slate-300 mb-2 block">Doctor's Wallet Address</label>
+                                <input
+                                    type="text"
+                                    placeholder="0x..."
+                                    value={accessAddress}
+                                    onChange={(e) => setAccessAddress(e.target.value)}
+                                    className="glass-input w-full p-3 rounded-xl"
+                                />
+                            </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm text-slate-400 mb-1">Doctor's Wallet Address</label>
-                                    <input
-                                        type="text"
-                                        value={accessAddress}
-                                        onChange={(e) => setAccessAddress(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-emerald-500 outline-none"
-                                        placeholder="ex. 0x1234567890123456789012345678901234567890"
-                                    />
+                            <div>
+                                <label className="text-sm font-medium text-slate-300 mb-2 block">Record IPFS Hash</label>
+                                <input
+                                    type="text"
+                                    placeholder="Qm..."
+                                    value={accessHash}
+                                    onChange={(e) => setAccessHash(e.target.value)}
+                                    className="glass-input w-full p-3 rounded-xl"
+                                />
+                                <p className="text-xs text-slate-500 mt-2">
+                                    *Copy the hash from your "My Medical Records" tab.
+                                </p>
+                            </div>
+
+                            {status && (
+                                <div className={`p-4 rounded-lg flex items-start gap-3 ${status.includes('Success') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>
+                                    {status.includes('Success') ? <CheckCircle size={18} /> : <Activity size={18} />}
+                                    <span className="text-sm">{status}</span>
                                 </div>
+                            )}
 
-                                <div>
-                                    <label className="block text-sm text-slate-400 mb-1">Record IPFS Hash</label>
-                                    <input
-                                        type="text"
-                                        value={accessHash}
-                                        onChange={(e) => setAccessHash(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-emerald-500 outline-none"
-                                        placeholder="ex. QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
-                                    />
-                                </div>
+                            <div className="grid grid-cols-2 gap-4 pt-4">
+                                <button
+                                    onClick={handleGrantAccess}
+                                    disabled={granting}
+                                    className="btn-primary py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
+                                >
+                                    {granting ? 'Processing...' : <><CheckCircle size={18} /> Grant Access</>}
+                                </button>
 
-                                {status && <div className={`text-sm p-3 rounded ${status.includes("Success") ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-300"}`}>{status}</div>}
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button
-                                        onClick={handleGrantAccess}
-                                        disabled={!accessAddress || !accessHash || granting}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
-                                    >
-                                        {granting ? 'Processing...' : 'Grant Permission'}
-                                    </button>
-
-                                    <button
-                                        onClick={handleRevokeAccess}
-                                        disabled={granting || !accessAddress || !accessHash}
-                                        className="bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white py-3 rounded-lg font-bold transition-colors"
-                                    >
-                                        Revoke Access
-                                    </button>
-                                </div>
-
+                                <button
+                                    onClick={handleRevokeAccess}
+                                    disabled={granting}
+                                    className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                                >
+                                    <ShieldAlert size={18} /> Revoke Access
+                                </button>
                             </div>
                         </div>
                     </div>
-                )}
-
-            </div>
+                </div>
+            )}
         </div>
-    )
-}
-export default PatientDashboard
+    );
+};
+
+export default PatientDashboard;
