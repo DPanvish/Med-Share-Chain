@@ -143,10 +143,10 @@ const ProviderDashboard = ({user}) => {
                     />
                     <button
                         onClick={handleSearch}
-                        disabled={loadingSearch}
+                        disabled={loading}
                         className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-bold transition-all"
                     >
-                        {loadingSearch ? 'Searching...' : 'Search'}
+                        {loading ? 'Searching...' : 'Search'}
                     </button>
                 </div>
                 {msg && <p className="text-slate-400 mt-4 text-sm">{msg}</p>}

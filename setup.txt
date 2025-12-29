@@ -24,3 +24,4 @@
     "npm install ethers axios react-router-dom"
 15) Install tailwindcss "npm install tailwindcss@latest @tailwindcss/vite@latest"
 16) Install "npm install file-type" for checking if the uploaded file is an image or not
+17) Install Lucid React for professional icons "npm install lucide-react"
