@@ -159,8 +159,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -194,8 +193,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -229,8 +227,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -339,8 +336,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -353,8 +349,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -373,8 +368,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -410,8 +404,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"patientAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"providerAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"recordHash\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"AccessGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"patientAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"providerAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"recordHash\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"AccessRevoked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"patientAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"}],\"name\":\"PatientRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"providerAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"hospital\",\"type\":\"string\"}],\"name\":\"ProviderRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"patientAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"recordHash\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"RecordUploaded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_patientAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_providerAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"_recordHash\",\"type\":\"string\"}],\"name\":\"checkAccess\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMyRecords\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_patient\",\"type\":\"address\"}],\"name\":\"getPatientRecords\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_provider\",\"type\":\"address\"}],\"name\":\"getProviderSharedRecords\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"recordHash\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"sharedAt\",\"type\":\"uint256\"}],\"internalType\":\"struct AccessControl.SharedRecord[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_providerAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"_recordHash\",\"type\":\"string\"}],\"name\":\"grantAccess\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"patients\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"isRegistered\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"providerSharedRecords\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"recordHash\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"sharedAt\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"providers\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"hospital\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"isRegistered\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"registerPatient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_hospital\",\"type\":\"string\"}],\"name\":\"registerProvider\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_providerAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"_recordHash\",\"type\":\"string\"}],\"name\":\"revokeAccess\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_recordHash\",\"type\":\"string\"}],\"name\":\"uploadRecord\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Manages patient-centric access control for Electronic Health Records (EHR's). Patients can register, upload record hashes (from IPFS), and grant/revoke access to those records for healthcare providers. All access attempts are logged as events for an immutable audit trail.\",\"kind\":\"dev\",\"methods\":{\"checkAccess(address,address,string)\":{\"details\":\"Allows anyone (e.g., the backend server) to check if provider has access to a patient's record. This is a public \\\"view\\\" function, so it doesn't cost any gas to call.\"},\"getMyRecords()\":{\"details\":\"Fetches all record hashes for the calling patient.\"},\"getPatientRecords(address)\":{\"details\":\"NEW FUNCTION: Allows a provider (or public) to see the list of records for a specific patient address. This is required for the Provider Search.\"},\"getProviderSharedRecords(address)\":{\"details\":\"Retrieves all shared records that have been granted access to a specific provider This function allows providers to view all records they have been granted access to, including the patient address and when the access was granted\"},\"grantAccess(address,string)\":{\"details\":\"Grants a provider access to a specific record. This is the core patient-consent function. Only the patient can call this.\"},\"registerPatient(string)\":{\"details\":\"Registers a new patient. The caller's wallet address (msg.sender) becomes their unique ID.\"},\"registerProvider(string,string)\":{\"details\":\"Registers a new provider (hospital, doctor, pharmacy).\"},\"revokeAccess(address,string)\":{\"details\":\"Revokes a provider's access to a specific record. Only the patient can call this.\"},\"uploadRecord(string)\":{\"details\":\"Adds a new record's IPFS hash to the patient's profile. This can only be called by a registered patient. (In real system, you might let a provider upload *for* a patient, but this \\\"patient-upload\\\" model is simpler to start with).\"}},\"stateVariables\":{\"permissions\":{\"details\":\"The core of the system. This nested mapping checks permissions. Format: mapping(patientAddress => mapping(providerAddress => mapping(recordHash => hasAccess)))\"}},\"title\":\"AccessControl\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/AccessControl.sol\":\"AccessControl\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/AccessControl.sol\":{\"keccak256\":\"0xda125f4b84e4ecc6208d434f01644b419eeff2914118988efe7653756a568408\",\"urls\":[\"bzz-raw://81f1ee70cdf3e41898f8cdadb70457c834039be3ed622994622dd86a9aeeeaf2\",\"dweb:/ipfs/QmQjbasydLU8ZXNQwTmbVtKbfrV3i55sRdbwCJoQrCcyY6\"]}},\"version\":1}",
@@ -14420,13 +14413,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xc2d049a55deD2d51d503E1a5ED0F098AC8a405a3",
-      "transactionHash": "0x4a4dd5a1dd2e5c2665b022e75b4191a888ccbe99fdb1345417919ecc2f63b12f"
+      "address": "0x94966913f878D0Bd544375c8a98a0B66C662Ce9E",
+      "transactionHash": "0xcbceee2e6d789e8f996ffa24524802a0170752f28448646d9d76154ffdfdac69"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-12-27T14:59:47.169Z",
-  "networkType": "ethereum",
+  "updatedAt": "2025-12-30T17:53:30.041Z",
   "devdoc": {
     "details": "Manages patient-centric access control for Electronic Health Records (EHR's). Patients can register, upload record hashes (from IPFS), and grant/revoke access to those records for healthcare providers. All access attempts are logged as events for an immutable audit trail.",
     "kind": "dev",

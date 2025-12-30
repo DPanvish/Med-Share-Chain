@@ -50,12 +50,20 @@ const PatientDashboard = ({ user }) => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await axios.post(`http://localhost:8080/api/ipfs/upload?patientAddress=${walletAddress}`, formData, {
+            const res = await axios.post(`http://localhost:8080/api/records/upload?patientAddress=${walletAddress}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
             const { hash } = res.data;
+            if (!hash) throw new Error("IPFS upload failed: No hash returned from server");
+
             const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
+
+            if (!contract.uploadRecord) {
+                console.error("Contract ABI:", AccessControl.abi);
+                throw new Error("Function 'uploadRecord' not found in contract ABI. Please update client/artifacts/AccessControl.json");
+            }
+
             const tx = await contract.uploadRecord(hash);
             await tx.wait();
 

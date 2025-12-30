@@ -20,7 +20,7 @@ export const uploadToIPFS = async(req, res) => {
 
         res.status(200).json({
             message: "File uploaded successfully",
-            ipfsHash: result.cid.toString(),
+            hash: result.cid.toString(),
         })
     }catch(err){
         console.error("IPFS upload error: ", err);

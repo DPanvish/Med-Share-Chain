@@ -17,7 +17,7 @@ const HomePage = () => {
                 try {
                     const user = await api.getUser(walletAddress);
                     if (user) {
-                        setTimeout(() => navigate("/dashboard"), 2000)
+                        navigate("/dashboard");
                     } else {
                         navigate("/register");
                     }
