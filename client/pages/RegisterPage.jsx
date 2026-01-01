@@ -5,7 +5,7 @@ import { api } from "../services/api.js";
 import { ethers } from "ethers";
 import AccessControl from '../artifacts/AccessControl.json';
 import { CONTRACT_ADDRESS } from "../artifacts/contractAddress.js";
-import { User, Building2, ShieldCheck, Loader2, Wallet, ArrowRight, Activity, CheckCircle } from 'lucide-react';
+import { User, Building2, ShieldCheck, Loader2, Wallet, ArrowRight, Activity, AlertTriangle } from 'lucide-react';
 
 const RegisterPage = () => {
     const { walletAddress, signer } = useAuth();
@@ -14,25 +14,28 @@ const RegisterPage = () => {
     const [name, setName] = useState("");
     const [role, setRole] = useState("patient");
     const [hospital, setHospital] = useState("");
+
+    // Detailed Loading States
     const [loading, setLoading] = useState(false);
+    const [step, setStep] = useState(0); // 0=Idle, 1=Signing, 2=Mining, 3=Database
     const [error, setError] = useState(null);
-    const [status, setStatus] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!name.trim()) return;
+        if (role === 'provider' && !hospital.trim()) return;
+
         setLoading(true);
         setError(null);
-        setStatus("Initialising registration...")
+        setStep(1); // Step 1: Wallet Signature
 
         try {
-            if (!signer) {
-                throw new Error("Wallet not connected");
-            }
+            if (!signer) throw new Error("Wallet not connected");
 
             const contract = new ethers.Contract(CONTRACT_ADDRESS, AccessControl.abi, signer);
 
-            setStatus("Step 1/3: Please sign transaction in MetaMask...");
-
+            // 1. Blockchain Transaction
             let tx;
             if (role === "patient") {
                 tx = await contract.registerPatient(name);
@@ -40,10 +43,11 @@ const RegisterPage = () => {
                 tx = await contract.registerProvider(name, hospital);
             }
 
-            setStatus('Step 2/3: Waiting for block confirmation...');
+            setStep(2); // Step 2: Mining
             await tx.wait();
 
-            setStatus('Step 3/3: Saving profile to database...');
+            // 2. Database Sync
+            setStep(3); // Step 3: API Call
             await api.registerUser({
                 walletAddress,
                 name,
@@ -51,36 +55,53 @@ const RegisterPage = () => {
                 hospital: role === "provider" ? hospital : undefined,
             });
 
+            // Success!
             navigate("/dashboard");
+
         } catch (err) {
             console.error("Registration failed:", err);
-            if (err.code === 'ACTION_REJECTED') {
+
+            // Handle "Zombie State" (On-chain success, DB failure)
+            if (step === 3) {
+                setError("Blockchain transaction successful, but Database sync failed. Please refresh and try again (the contract handles duplicates).");
+            } else if (err.code === 'ACTION_REJECTED') {
                 setError("You rejected the transaction in MetaMask.");
             } else {
                 setError("Registration failed: " + (err.reason || err.message));
             }
+            setStep(0);
         } finally {
             setLoading(false);
-            setStatus("")
         }
     }
 
+    // Helper to get button text based on current step
+    const getButtonText = () => {
+        switch(step) {
+            case 1: return "Check MetaMask to Sign...";
+            case 2: return "Confirming on Blockchain...";
+            case 3: return "Finalizing Profile...";
+            default: return "Complete Registration";
+        }
+    };
+
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-slate-950">
 
             {/* Background Decoration Blobs */}
-            <div className="absolute top-[10%] left-[10%] w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px]"></div>
-            <div className="absolute bottom-[10%] right-[10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[80px]"></div>
+            <div className="absolute top-[10%] left-[10%] w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="absolute bottom-[10%] right-[10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none"></div>
 
-            <div className="glass-panel w-full max-w-lg p-8 rounded-3xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="glass-panel w-full max-w-lg p-8 rounded-3xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700 border border-white/10 bg-slate-900/60 backdrop-blur-xl">
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4 transform transition-transform hover:scale-110 duration-300">
                         <ShieldCheck size={32} className="text-white" />
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-2">Complete Profile</h2>
-                    <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+
+                    <div className="flex items-center justify-center gap-2 text-slate-400 text-sm mt-3">
                         <Wallet size={14} />
                         <span>Connected:</span>
                         <span className="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
@@ -91,16 +112,30 @@ const RegisterPage = () => {
 
                 {/* Status / Error Messages */}
                 {error && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-start gap-3">
-                        <Activity className="shrink-0" size={18} />
-                        {error}
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                        <AlertTriangle className="shrink-0 mt-0.5" size={18} />
+                        <span>{error}</span>
                     </div>
                 )}
 
-                {status && (
-                    <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 p-4 rounded-xl mb-6 text-sm flex items-center gap-3 animate-pulse">
-                        <Loader2 className="animate-spin shrink-0" size={18} />
-                        {status}
+                {/* Progress Bar (Only visible during loading) */}
+                {loading && (
+                    <div className="mb-6 space-y-2">
+                        <div className="flex justify-between text-xs text-blue-300 font-medium px-1">
+                            <span>Progress</span>
+                            <span>{step}/3</span>
+                        </div>
+                        <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-blue-500 transition-all duration-500 ease-out"
+                                style={{ width: `${(step / 3) * 100}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-center text-xs text-slate-400 animate-pulse pt-1">
+                            {step === 1 && "Waiting for signature..."}
+                            {step === 2 && "Waiting for block confirmation..."}
+                            {step === 3 && "Syncing with database..."}
+                        </p>
                     </div>
                 )}
 
@@ -113,6 +148,7 @@ const RegisterPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setRole("patient")}
+                                disabled={loading}
                                 className={`p-4 rounded-xl border text-center transition-all duration-300 flex flex-col items-center gap-2 ${
                                     role === "patient"
                                         ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-900/50 scale-[1.02]"
@@ -126,6 +162,7 @@ const RegisterPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setRole('provider')}
+                                disabled={loading}
                                 className={`p-4 rounded-xl border text-center transition-all duration-300 flex flex-col items-center gap-2 ${
                                     role === 'provider'
                                         ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/50 scale-[1.02]"
@@ -145,7 +182,8 @@ const RegisterPage = () => {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="glass-input w-full p-3 rounded-xl"
+                            disabled={loading}
+                            className="glass-input w-full p-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-none"
                             required
                             placeholder="e.g. John Doe"
                         />
@@ -159,7 +197,8 @@ const RegisterPage = () => {
                                 type="text"
                                 value={hospital}
                                 onChange={(e) => setHospital(e.target.value)}
-                                className="glass-input w-full p-3 rounded-xl"
+                                disabled={loading}
+                                className="glass-input w-full p-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
                                 required
                                 placeholder="e.g. City General Hospital"
                             />
@@ -170,17 +209,23 @@ const RegisterPage = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full btn-primary py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`w-full py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 group transition-all duration-300 ${
+                            loading
+                                ? 'bg-slate-700 cursor-not-allowed text-slate-400'
+                                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white hover:shadow-emerald-500/25'
+                        }`}
                     >
                         {loading ? (
-                            <>Processing Transaction...</>
+                            <Loader2 className="animate-spin" size={24} />
                         ) : (
-                            <>Complete Registration <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></>
+                            <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
                         )}
+                        <span>{getButtonText()}</span>
                     </button>
                 </form>
             </div>
         </div>
     )
 }
+
 export default RegisterPage;
