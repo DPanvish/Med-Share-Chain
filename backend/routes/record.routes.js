@@ -9,8 +9,8 @@ const storage = multer.memoryStorage();
 
 // Initialize multer with the storage engine
 const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }
+    "storage": storage,
+    "limits": { "fileSize": 10 * 1024 * 1024 }
 })
 
 router.post('/upload', upload.single('file'), uploadToIPFS)

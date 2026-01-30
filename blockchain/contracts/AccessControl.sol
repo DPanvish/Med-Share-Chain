@@ -153,6 +153,11 @@ contract AccessControl {
         address _providerAddress,
         string memory _recordHash
     ) public view returns (bool) {
+        // The patient who owns the record should always have access.
+        if (_patientAddress == _providerAddress) {
+            return true;
+        }
+        // Otherwise, check the permissions mapping.
         return permissions[_patientAddress][_providerAddress][_recordHash];
     }
 

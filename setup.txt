@@ -25,3 +25,11 @@
 15) Install tailwindcss "npm install tailwindcss@latest @tailwindcss/vite@latest"
 16) Install "npm install file-type" for checking if the uploaded file is an image or not
 17) Install Lucid React for professional icons "npm install lucide-react"
+
+18) For mobile version install React native "npx create-expo-app@latest med-share-mobile"
+19) Install Nativewind, Tailwind and other dependencies
+    "npm install nativewind tailwindcss react-native-reanimated react-native-safe-area-context react-native-svg lucide-react-native clsx"
+20) Install Blockchain and Utility dependencies
+    "npm install ethers@5.7.2 @web3modal/ethers5-react-native react-native-get-random-values react-native-quick-crypto buffer axios expo-document-picker expo-file-system"
+21) Install dev dependicies "npm install -D typescript @types/react @types/node"
+22) Initialize the tailwind css "npx tailwindcss init"
