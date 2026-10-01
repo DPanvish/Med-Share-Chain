@@ -44,7 +44,7 @@ const RegisterPage = () => {
             await tx.wait();
 
             setStatus('Step 3/3: Saving profile to database...');
-            await api.registerUser({
+            const res = await api.registerUser({
                 walletAddress,
                 name,
                 role,
