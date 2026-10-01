@@ -58,16 +58,26 @@ export const getRecordFromIPFS = async(req, res) => {
 
         console.log(`Checking access for: Patient ${checkedPatientAddress}, Provider ${checkedProviderAddress}, Hash ${hash}`);
 
-        // The contract's checkAccess function now handles the owner-access case,
-        // so we can call it for all scenarios, making it the single source of truth.
-        const hasAccess = await contract.methods
-            .checkAccess(checkedPatientAddress, checkedProviderAddress, hash)
-            .call();
+        // Permission Check
+        // Allow Owner (Patient) to access their own file immediatly
+        if(checkedProviderAddress === checkedPatientAddress){
+            console.log("Access GRANTED (Owner)");
+        }else{
+            console.log("--- PERMISSION CHECK DEBUG ---");
+            console.log("Contract Address:", process.env.CONTRACT_ADDRESS);
+            console.log("Patient:", checkedPatientAddress);
+            console.log("Provider (You):", checkedProviderAddress);
+            console.log("File Hash:", hash);
 
-        console.log("Blockchain replied:", hasAccess);
+            const hasAccess = await contract.methods
+                .checkAccess(checkedPatientAddress, checkedProviderAddress, hash)
+                .call();
 
-        if (!hasAccess) {
-            return res.status(401).json({ message: "Unauthorized: You do not have permission to access this record" });
+            console.log("Blockchain replied:", hasAccess)
+
+            if(!hasAccess){
+                return res.status(401).json({message: "Unauthorized: You do not have permission to access this record"});
+            }
         }
 
         // Fetch File from IPFS

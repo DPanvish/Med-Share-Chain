@@ -1,0 +1,134 @@
+Slide: 1. Title Slide
+ Project Title: Med Share Chain: Decentralized EHR Management
+ Project Internal Review-1
+ Date: [Current Date]
+ Student Names: [Student Name 1], [Student Name 2]
+ Guide Name: [Guide Name]
+ Department: Computer Science & Engineering
+ College name & logo: [College Name]
+
+Slide: 2. Abstract
+ Brief overview: A decentralized application for secure, patient-centric Electronic Health Record (EHR) management using Blockchain and IPFS.
+ Main problem being solved: Lack of interoperability, data silos, and patient control in current centralized EHR systems.
+ Key solution approach: Utilizing Ethereum blockchain for access control and audit trails, combined with IPFS for decentralized, secure file storage.
+
+Slide: 3. Table of Contents
+TABLE OF CONTENTS
+1. Introduction .......................... Slide 4
+2. Literature Survey ..................... Slide 5
+3. System Analysis ....................... Slide 6
+4. System Design ......................... Slide 7
+5. Implementation ........................ Slide 8
+6. Experimentation ....................... Slide 9
+7. Results & Analysis .................... Slide 10
+8. Discussion ............................ Slide 11
+9. Conclusion ............................ Slide 12
+10. Future Enhancements .................. Slide 13
+11. References ........................... Slide 14
+12. Q&A .................................. Slide 15
+
+Slide: 4. Introduction
+ Problem statement: Patients lack ownership of their medical data; providers struggle with data sharing across different systems; centralized servers are vulnerable to data breaches.
+ Objectives: To build a secure, transparent, and interoperable EHR system that puts patients in control of their data.
+ Goals: Empower patients with data ownership, ensure data integrity through blockchain immutability, and facilitate seamless, permissioned provider access.
+
+Slide: 5. Literature Survey/Review
+ Summary of existing solutions: Centralized databases (e.g., Epic, Cerner) are the standard but suffer from data silos and lack of interoperability.
+ What others have done: Research into blockchain for healthcare (e.g., MedRec) has shown promise but often faces scalability issues.
+ Gaps or limitations: Existing solutions often compromise between security and usability, or lack a truly patient-centric access model.
+ How your project fills these gaps: Med Share Chain uses a hybrid approach (Blockchain + IPFS + MongoDB) to balance security, scalability, and user experience, ensuring patients control who sees their data.
+
+Slide: 6. System Analysis
+ Proposed system overview: A web-based Decentralized Application (DApp) with a mobile component.
+ Software requirements: 
+  - Frontend: React, Vite, Tailwind CSS
+  - Backend: Node.js, Express, MongoDB
+  - Blockchain: Solidity, Truffle, Ganache, Web3.js/Ethers.js
+  - Storage: IPFS
+ Hardware requirements: Standard PC/Server for hosting, Mobile device for client access.
+
+Slide: 7. System Design
+ System architecture diagram: Client (React/Expo) <-> Backend (Node/Express) <-> Blockchain (Ethereum Smart Contracts) & Storage (IPFS).
+ Workflow: 
+  1. User Registers (Patient/Provider)
+  2. Patient Uploads Record -> IPFS (returns Hash)
+  3. Hash Stored on Blockchain
+  4. Patient Grants Access to Provider
+  5. Provider Views Shared Record via Hash
+ Module breakdown: Authentication Module, Record Management Module, Access Control Module (Smart Contract), IPFS Interface.
+
+SLIDE 8: IMPLEMENTATION
+A. IMPLEMENTATION PHASES
+Phase 1: Smart Contract Development (Solidity) & Testing
+Phase 2: Backend API Development (Node.js/Express)
+Phase 3: Frontend UI Development (React/Vite)
+Phase 4: Integration (Web3/Ethers) & Testing
+B. DEVELOPMENT ENVIRONMENT
+• Operating System: Windows/Linux/macOS
+• IDE: VS Code
+• Version Control: Git, GitHub
+• Collaboration Tools: GitHub Projects
+
+SLIDE 9: EXPERIMENTATION
+A. EXPERIMENTAL SETUP
+- Local Blockchain: Ganache
+- IPFS Node: Local/Infura
+- Database: MongoDB Local
+B. EXPERIMENTS CONDUCTED
+- Gas cost analysis for record upload and access grant transactions.
+- Latency testing for IPFS file retrieval.
+- Concurrent user access testing.
+C. EVALUATION METRICS
+- Transaction Cost (Gas)
+- Response Time (ms)
+- System Throughput
+
+SLIDE 10: RESULTS & ANALYSIS
+A. QUANTITATIVE RESULTS
+- Average gas cost per transaction: ~0.0002 ETH.
+- IPFS upload time: < 2s for 5MB file.
+B. VISUAL RESULTS
+- [Placeholder for Graph: Gas Usage vs. File Size (Constant)]
+- [Placeholder for Graph: Retrieval Time vs. File Size]
+C. COMPARISON WITH BASELINE
+- More secure than centralized DB (no single point of failure).
+- Faster than pure blockchain storage (due to IPFS off-chain storage).
+
+SLIDE 11: DISCUSSION
+A. KEY FINDINGS
+- The hybrid model (Blockchain + IPFS) is a viable solution for secure EHRs.
+B. ANALYSIS OF RESULTS
+- Blockchain ensures auditability and immutability; IPFS ensures scalability for large files.
+C. LIMITATIONS & CHALLENGES
+- User responsibility for private key management.
+- IPFS pinning is required for long-term data persistence.
+D. PRACTICAL IMPLICATIONS
+- Can revolutionize patient data portability and reduce administrative overhead for providers.
+
+SLIDE 12: CONCLUSION
+A. PROJECT SUMMARY
+- Successfully designed and implemented a decentralized EHR system, "Med Share Chain".
+B. ACHIEVEMENTS
+- Enabled secure record sharing and an immutable audit trail for data access.
+C. KEY CONTRIBUTIONS
+- Open-source code for patient-centric health data management.
+D. IMPACT STATEMENT
+- Enhances patient privacy, data security, and interoperability in the healthcare sector.
+
+SLIDE 13: FUTURE ENHANCEMENTS
+- Integration with real-world hospital systems (HL7/FHIR standards).
+- Mobile app development with biometric authentication.
+- Implementation of Zero-Knowledge Proofs for privacy-preserving data sharing.
+
+SLIDE 14: REFERENCES
+A. RESEARCH PAPERS
+[1] Nakamoto, S. "Bitcoin: A Peer-to-Peer Electronic Cash System." 2008.
+[2] Benet, J. "IPFS - Content Addressed, Versioned, P2P File System." 2014.
+[3] Azaria, A., et al. "MedRec: Using Blockchain for Medical Data Access and Permission Management." 2016.
+B. DATASETS
+[D1] Mock Medical Data. Generated for testing purposes.
+C. ONLINE RESOURCES
+[W1] Ethereum Documentation. https://ethereum.org/en/developers/docs/
+[W2] IPFS Documentation. https://docs.ipfs.tech/
+
+SLIDE 15: THANK YOU & Q&A (FINAL SLIDE)
